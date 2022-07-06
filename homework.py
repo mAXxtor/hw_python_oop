@@ -49,7 +49,7 @@ class Training:
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        raise NotImplementedError
+        raise NotImplementedError('Определите метод get_spent_calories в %s.' % (type(self).__name__))
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
@@ -63,14 +63,14 @@ class Training:
 class Running(Training):
     """Тренировка: бег."""
 
-    MEAN_SPEED_RATE: float = 18
-    WEIGHT_RATE: float = 20
+    MEAN_SPEED_RATE_1: float = 18
+    MEAN_SPEED_RATE_2: float = 20
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий для бега."""
-        return ((self.MEAN_SPEED_RATE
+        return ((self.MEAN_SPEED_RATE_1
                 * self.get_mean_speed()
-                - self.WEIGHT_RATE)
+                - self.MEAN_SPEED_RATE_2)
                 * self.weight
                 / self.M_IN_KM
                 * self.duration
@@ -153,7 +153,7 @@ def read_package(workout_type: str, data: list) -> Training:
 
 def main(training: Training) -> None:
     """Главная функция."""
-    return print(training.show_training_info().get_message())
+    print(training.show_training_info().get_message())
 
 
 if __name__ == '__main__':
