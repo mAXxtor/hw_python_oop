@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from typing import Dict, Type
 
 
@@ -23,21 +23,17 @@ class InfoMessage:
         return self.MESSAGE.format(**asdict(self))
 
 
+@dataclass
 class Training:
     """Базовый класс тренировки."""
 
-    LEN_STEP: float = 0.65
-    M_IN_KM: float = 1000
-    MIN_IN_HOUR: float = 60
+    action: int
+    duration: float
+    weight: float
 
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float
-                 ) -> None:
-        self.action = action
-        self.duration = duration
-        self.weight = weight
+    LEN_STEP = 0.65
+    M_IN_KM = 1000
+    MIN_IN_HOUR = 60
 
     def get_distance(self) -> float:
         """Получить дистанцию в км."""
@@ -61,11 +57,12 @@ class Training:
                            self.get_spent_calories())
 
 
+@dataclass
 class Running(Training):
     """Тренировка: бег."""
 
-    MEAN_SPEED_RATE_1: float = 18
-    MEAN_SPEED_RATE_2: float = 20
+    MEAN_SPEED_RATE_1 = 18
+    MEAN_SPEED_RATE_2 = 20
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий для бега."""
@@ -78,21 +75,18 @@ class Running(Training):
                 * self.MIN_IN_HOUR)
 
 
+@dataclass
 class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
 
-    WEIGHT_RATE_1: float = 0.035
-    EXPONENTATION_RATE: float = 2
-    WEIGHT_RATE_2: float = 0.029
+    action: int
+    duration: float
+    weight: float
+    height: int
 
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float,
-                 height: int
-                 ) -> None:
-        super().__init__(action, duration, weight)
-        self.height = height
+    WEIGHT_RATE_1 = 0.035
+    EXPONENTATION_RATE = 2
+    WEIGHT_RATE_2 = 0.029
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий для спортивной ходьбы."""
@@ -107,23 +101,19 @@ class SportsWalking(Training):
                 * self.MIN_IN_HOUR)
 
 
+@dataclass
 class Swimming(Training):
     """Тренировка: плавание."""
 
-    LEN_STEP: float = 1.38
-    MEAN_SPEED_RATE: float = 1.1
-    WEIGHT_RATE: float = 2
+    action: int
+    duration: float
+    weight: float
+    length_pool: float
+    count_pool: int
 
-    def __init__(self,
-                 action: int,
-                 duration: float,
-                 weight: float,
-                 length_pool: float,
-                 count_pool: int
-                 ) -> None:
-        super().__init__(action, duration, weight)
-        self.length_pool = length_pool
-        self.count_pool = count_pool
+    LEN_STEP = 1.38
+    MEAN_SPEED_RATE = 1.1
+    WEIGHT_RATE = 2
 
     def get_mean_speed(self) -> float:
         """Получить среднюю скорость плавания."""
@@ -148,7 +138,9 @@ def read_package(workout_type: str, data: list) -> Training:
         'WLK': SportsWalking
     }
     if workout_type not in training_type:
-        raise ValueError(f'Неизвестный тип тренировки - {workout_type}')
+        raise ValueError
+    elif (len(fields(training_type[workout_type]))) != len(data):
+        raise Exception
     return training_type[workout_type](*data)
 
 
@@ -164,5 +156,10 @@ if __name__ == '__main__':
         ('WLK', [9000, 1, 75, 180]),
     ]
 
-    for workout_type, data in packages:
-        main(read_package(workout_type, data))
+    try:
+        for workout_type, data in packages:
+            main(read_package(workout_type, data))
+    except ValueError:
+        print(f'Неизвестный тип тренировки - {workout_type}')
+    except Exception:
+        print('Ошибка в количестве переданных параметров')
